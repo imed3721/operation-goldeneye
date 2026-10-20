@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   destroy:
-    name: Review Infrastructure Teardown Plan
+    name: Destroy GoldenEye Infrastructure
     runs-on: ubuntu-latest
     environment: production
 
@@ -43,17 +43,39 @@ jobs:
         run: terraform validate
 
       - name: Generate destroy plan
-        run: terraform plan -destroy -input=false -no-color -out=goldeneye-destroy.tfplan
+        run: |
+          terraform plan \
+            -destroy \
+            -input=false \
+            -no-color \
+            -out=goldeneye-destroy.tfplan
 
       - name: Display destroy plan
         run: terraform show -no-color goldeneye-destroy.tfplan
 
-      - name: Confirm teardown was not executed
+      - name: Apply destroy plan
+        run: terraform apply -input=false -no-color goldeneye-destroy.tfplan
+
+      - name: Report teardown result
+        if: success()
         run: |
           echo "========================================"
           echo "GoldenEye Controlled Teardown"
           echo "========================================"
-          echo "Destroy plan generated successfully."
-          echo "No infrastructure resources have been destroyed."
-          echo "Review the plan before authorising any deletion."
+          echo "Terraform destroy completed successfully."
+          echo "Resources managed by this Terraform state"
+          echo "have been scheduled for deletion and removed"
+          echo "where AWS completed the deletion successfully."
+          echo "Terraform state has been updated."
+          echo "========================================"
+
+      - name: Report failure
+        if: failure()
+        run: |
+          echo "========================================"
+          echo "GoldenEye Controlled Teardown"
+          echo "========================================"
+          echo "Teardown failed or did not complete."
+          echo "Review the failed step and AWS/Terraform logs."
+          echo "Do not assume all resources were deleted."
           echo "========================================"
