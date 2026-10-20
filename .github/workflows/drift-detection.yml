@@ -1,0 +1,73 @@
+name: GoldenEye - Drift Detection
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * *"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  drift:
+    name: Detect Infrastructure Drift
+    runs-on: ubuntu-latest
+    environment: production
+
+    defaults:
+      run:
+        working-directory: infra
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.14.0"
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DRIFT_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Initialise Terraform
+        run: terraform init
+
+      - name: Check for infrastructure drift
+        id: drift
+        continue-on-error: true
+        run: |
+          set +e
+          terraform plan -detailed-exitcode -no-color -out=drift.tfplan
+          exit_code=$?
+          echo "exitcode=$exit_code" >> "$GITHUB_OUTPUT"
+
+          if [ "$exit_code" -eq 1 ]; then
+            exit 1
+          fi
+
+          exit 0
+
+      - name: Report drift result
+        if: always()
+        env:
+          PLAN_OUTCOME: ${{ steps.drift.outcome }}
+          PLAN_EXIT_CODE: ${{ steps.drift.outputs.exitcode }}
+        run: |
+          echo "Drift detection step outcome: $PLAN_OUTCOME"
+          echo "Terraform plan exit code: $PLAN_EXIT_CODE"
+
+          if [ "$PLAN_EXIT_CODE" = "0" ]; then
+            echo "Result: No changes detected."
+          elif [ "$PLAN_EXIT_CODE" = "2" ]; then
+            echo "Result: Changes detected. Review the Terraform plan output above."
+          else
+            echo "Result: Drift detection failed or did not complete. Review the workflow logs."
+          fi
