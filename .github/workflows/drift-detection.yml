@@ -95,6 +95,7 @@ jobs:
           else
             echo "Result: Drift detection failed or did not complete."
             echo "Action: Review the workflow logs and investigate the error."
+            exit 1
           fi
 
           echo "========================================"
