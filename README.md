@@ -152,7 +152,9 @@ The identity-check workflow tests the GitHub-to-AWS authentication configuration
 
 **Evidence**
 
-![OIDC Identity Check](docs/images/oidc-identity-check.png)
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/925ac697605905b594ad06b3f1fe9e264224b41c/screenshots/Screenshot%202026-10-20%20at%2013.39.55.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/925ac697605905b594ad06b3f1fe9e264224b41c/screenshots/Screenshot%202026-10-20%20at%2013.40.04.png)
 
 *Evidence of the workflow's AWS identity verification.*
 
@@ -162,7 +164,9 @@ The S3 state bucket keeps Terraform state outside the GitHub Actions runner. Ver
 
 **Evidence**
 
-![S3 Bucket Security](docs/images/s3-bucket-security.png)
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/1375e27667749f72ac55e84672165c92c9047556/screenshots/Screenshot%202026-10-20%20at%2013.45.41.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/1375e27667749f72ac55e84672165c92c9047556/screenshots/Screenshot%202026-10-20%20at%2013.45.49.png)
 
 *Amazon S3 bucket configuration showing versioning and Block Public Access settings.*
 
