@@ -1,403 +1,395 @@
 # 🎯 Operation GoldenEye
 
-**A James Bond-inspired DevOps engineering project demonstrating Infrastructure as Code, secure AWS authentication, automated infrastructure validation, deployment workflows, drift detection, and controlled teardown.**
+**A James Bond-inspired DevOps project demonstrating Terraform, GitHub Actions, AWS OIDC authentication, secure remote state, infrastructure deployment, drift detection, and controlled teardown.**
 
-[![Terraform](https://img.shields.io/badge/Terraform-IaC-7B42BC?logo=terraform&logoColor=white)](https://www.terraform.io/)
-[![AWS](https://img.shields.io/badge/AWS-Infrastructure-FF9900?logo=amazonaws&logoColor=white)](https://aws.amazon.com/)
-[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?logo=githubactions&logoColor=white)](https://github.com/features/actions)
-[![Security](https://img.shields.io/badge/Auth-OIDC%20%7C%20IAM-2E8B57)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_oidc.html)
+![Terraform](https://img.shields.io/badge/Terraform-Infrastructure%20as%20Code-7B42BC?logo=terraform&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-Cloud%20Infrastructure-FF9900?logo=amazonaws&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?logo=githubactions&logoColor=white)
+![Security](https://img.shields.io/badge/Security-OIDC%20%7C%20IAM-2E8B57)
 
 ## 🕵️ Mission briefing
 
-Operation GoldenEye is a hands-on DevOps project built around a fictional MI6 mission. Its objective is to demonstrate how cloud infrastructure can be defined, validated, deployed, monitored for configuration drift, and safely removed using a repeatable workflow.
+**Mission:** Build and manage AWS infrastructure through a repeatable, security-conscious automation pipeline.
 
-The project combines Terraform with GitHub Actions and AWS IAM OpenID Connect (OIDC), avoiding the need to store long-lived AWS access keys in GitHub repository secrets.
+Operation GoldenEye is a hands-on DevOps project exploring how cloud infrastructure can be defined as code, validated automatically, deployed through GitHub Actions, monitored for unexpected changes, and removed through a controlled teardown process.
 
-Rather than treating deployment as a single action, GoldenEye explores the infrastructure lifecycle: **validate, plan, deploy, detect drift, investigate changes, and destroy resources when they are no longer needed.**
+The project uses Terraform to define infrastructure and AWS IAM OpenID Connect (OIDC) to authenticate GitHub Actions to AWS without storing long-lived AWS access keys in GitHub repository secrets.
+
+Rather than focusing solely on deployment, this project covers the infrastructure lifecycle:
+
+**Validate → Plan → Deploy → Detect drift → Remediate → Destroy**
 
 ### Mission objectives
 
-- Define AWS networking and load-balancing infrastructure using Terraform.
-- Authenticate GitHub Actions to AWS using OIDC and IAM roles.
+- Automate Terraform quality checks and configuration validation.
+- Configure GitHub Actions to authenticate to AWS using OIDC.
 - Store Terraform state remotely in Amazon S3.
-- Automate Terraform quality checks, validation, planning, and deployment.
-- Detect manual changes that cause infrastructure drift.
-- Separate read-oriented drift detection from deployment permissions.
-- Provide a controlled, auditable teardown workflow.
-- Document the implementation and its results with screenshots.
+- Apply IAM permissions appropriate to different workflow responsibilities.
+- Provision AWS networking and an Application Load Balancer (ALB).
+- Generate and review Terraform execution plans.
+- Introduce and detect infrastructure drift.
+- Restore the intended configuration and verify the result.
+- Document implementation evidence and resource cleanup.
 
 ## 🏗️ Architecture
 
-![Operation GoldenEye architecture](docs/images/architecture.png)
+The project connects source control, CI/CD automation, AWS identity, Terraform state, and cloud infrastructure.
 
-*Architecture diagram: GitHub Actions authenticates to AWS through OIDC, assumes an IAM role, and runs Terraform against the remote state and AWS infrastructure.*
+```mermaid
+flowchart TD
+    A[GitHub Repository] --> B[GitHub Actions]
+    B --> C[Terraform Quality Checks]
+    B --> D[AWS OIDC Authentication]
+    D --> E[IAM Roles and Permissions]
+    E --> F[Terraform Workflows]
+    F --> G[Amazon S3 Remote State]
+    F --> H[AWS VPC]
+    H --> I[Public Subnets]
+    I --> J[Application Load Balancer]
+    F --> K[Drift Detection]
+    K --> L[Review and Remediation]
+```
 
 ### Architecture components
 
 | Component | Purpose |
 |---|---|
-| GitHub repository | Stores Terraform configuration, workflow definitions, and project documentation. |
+| GitHub | Stores Terraform configuration, workflow definitions, and documentation. |
 | GitHub Actions | Automates quality checks, identity verification, planning, deployment, drift detection, and teardown. |
-| AWS IAM OIDC provider | Allows GitHub Actions to obtain temporary AWS credentials through a trusted identity relationship. |
-| IAM roles | Provide role-specific permissions for deployment, drift detection, and identity verification. |
+| AWS IAM OIDC provider | Establishes a trusted identity relationship with GitHub Actions. |
+| IAM roles | Grant permissions to the relevant workflow operations. |
 | Terraform | Defines and manages the infrastructure declaratively. |
-| Amazon S3 | Stores Terraform state remotely, with versioning and public-access protections configured on the state bucket. |
-| Amazon VPC | Provides the project's isolated virtual network. |
-| Public subnets | Host the public-facing load balancer across two Availability Zones. |
-| Internet gateway and route table | Provide the network route required for public internet connectivity. |
-| Security group | Controls traffic to the load balancer, including HTTP access on port 80. |
-| Application Load Balancer | Exposes the demonstration endpoint through a public DNS name. |
+| Amazon S3 | Stores remote Terraform state, with versioning and Block Public Access configured on the state bucket. |
+| Amazon VPC | Provides the project's virtual network. |
+| Public subnets | Place the public-facing load balancer across two Availability Zones. |
+| Internet gateway and route table | Provide the routing needed for internet-facing connectivity. |
+| Security group | Controls inbound and outbound traffic to the load balancer. |
+| Application Load Balancer | Provides a public HTTP endpoint for the demonstration. |
 
 ### Network design
 
-The Terraform configuration defines a VPC using `10.70.0.0/16`, with two public subnets selected across the first two available Availability Zones. An internet gateway and public route table provide the routing required by the public-facing load balancer.
+The Terraform configuration defines a VPC using the CIDR range `10.70.0.0/16`, with two public subnets across the first two available Availability Zones.
 
-The load balancer security group permits inbound HTTP traffic on port 80 and allows outbound traffic. The Application Load Balancer uses a fixed-response listener, returning the demonstration message:
+An internet gateway and route table provide the required internet route. The ALB security group permits inbound HTTP traffic on port 80.
+
+The ALB uses a fixed-response listener rather than an application server. Its demonstration response is:
 
 > MI6 GOLDENEYE: Mission control is operational.
 
-This initial implementation focuses on cloud networking, load balancing, identity, and infrastructure lifecycle automation. It does not require an EC2 application fleet or container platform to demonstrate these concepts.
+This keeps the demonstration focused on networking, infrastructure automation, authentication, and lifecycle management without requiring an EC2 fleet or container platform.
 
 ## 🧰 Technology stack
 
 - **Infrastructure as Code:** Terraform
-- **CI/CD and automation:** GitHub Actions
-- **Cloud platform:** Amazon Web Services
-- **Identity and permissions:** AWS IAM and GitHub Actions OIDC
+- **Automation and CI/CD:** GitHub Actions
+- **Cloud platform:** Amazon Web Services (AWS)
+- **Authentication:** GitHub Actions OIDC and AWS IAM
 - **Networking:** Amazon VPC, subnets, internet gateway, route tables, and security groups
-- **Traffic entry point:** AWS Application Load Balancer
+- **Traffic entry point:** Application Load Balancer
 - **Remote state:** Amazon S3
-- **Source control:** Git and GitHub
-- **Testing approach:** Automated Terraform checks, execution plans, deployment runs, and a controlled drift experiment
+- **Version control:** Git and GitHub
+- **Operational testing:** Terraform validation, execution plans, deployment runs, drift experiments, and teardown
 
-## 🔐 Security design
-
-Security is part of the implementation rather than an afterthought.
+## 🔐 Security and identity
 
 ### OIDC authentication
 
-GitHub Actions uses an OIDC trust relationship to assume an AWS IAM role and obtain temporary credentials. This avoids storing long-lived AWS access keys in GitHub repository secrets.
+GitHub Actions authenticates to AWS using OpenID Connect and assumes an IAM role to obtain temporary credentials.
 
-The trust relationship should be restricted to the intended repository and GitHub environment, with the audience and subject conditions configured to match the actual GitHub-issued token claims.
+This avoids the need to store long-lived AWS access keys in GitHub repository secrets.
+
+The trust policy should restrict access to the intended repository and GitHub environment, with the correct token audience and subject conditions. The IAM role's permissions should also be limited to the operations required by its workflow.
 
 ### Role separation
 
-GoldenEye uses distinct roles for different workflow purposes:
+The project distinguishes between three workflow responsibilities:
 
-- **OIDC identity verification:** Tests the GitHub-to-AWS identity integration.
-- **Terraform deployment:** Performs the infrastructure operations permitted by its IAM policies.
-- **Drift detection:** Reads the infrastructure and Terraform state required to calculate a plan, with state-lock permissions where necessary.
+- **Identity verification:** Confirms that GitHub Actions can authenticate to AWS using the configured trust relationship.
+- **Deployment:** Performs the Terraform operations permitted by the deployment role.
+- **Drift detection:** Reads the infrastructure and Terraform state needed to identify differences, with any necessary state-lock permissions.
 
-Separate role names do not, by themselves, guarantee least privilege. Effective permissions depend on the attached policies, trust policies, permissions boundaries, and any applicable organisation-level controls.
+Separate roles support clearer permission boundaries, but least privilege depends on the actual policies attached to those roles.
 
-### Remote state protection
+### Remote state security
 
-The Terraform backend uses Amazon S3 to maintain state outside the GitHub Actions runner. The bucket is configured with versioning and Block Public Access settings, helping protect state history and prevent unintended public exposure.
+Amazon S3 stores Terraform state outside the ephemeral GitHub Actions runner.
 
-Terraform state can contain sensitive infrastructure metadata. Access should therefore remain restricted to authorised roles and users. Public-access protection does not replace IAM access controls or encryption.
+The state bucket is configured with:
+
+- **Versioning** to preserve previous object versions and support recovery.
+- **Block Public Access** to help prevent unintended public exposure.
+- **Restricted access** through appropriate AWS permissions.
+
+Terraform state can contain sensitive infrastructure metadata. Public-access protection alone is not sufficient; access control and appropriate encryption are also important.
 
 ### Change control
 
-The deployment and teardown workflows are manually initiated. GitHub environment protection rules can add an approval gate where configured.
+Deployment and teardown should be deliberate operations. Terraform plans must be reviewed before consequential changes are applied.
 
-A Terraform plan should always be reviewed for unexpected changes before a destructive or consequential operation. A workflow that generates and applies a plan in one job does not automatically provide a separate approval point between those two steps.
+GitHub environment protection rules can provide an approval gate when configured. A manually triggered workflow is not, by itself, proof that a separate approval step exists.
 
-## ⚙️ Automation workflows
+## ⚙️ Automated workflows
 
-The project uses GitHub Actions to demonstrate different stages of the infrastructure lifecycle.
+The GitHub Actions workflows demonstrate different stages of the infrastructure lifecycle.
 
 ### 1. Terraform quality checks
 
-The quality-check workflow provides an automated place to run the project's configured checks. This helps identify configuration issues before infrastructure changes are applied.
+Automated checks help identify formatting, configuration, and validation issues before deployment.
 
-**Evidence:** `docs/images/terraform-quality-checks.png`
+**Evidence**
+
+![Terraform Quality Checks](docs/images/terraform-quality-checks.png)
+
+*GitHub Actions running the Terraform quality-check workflow.*
 
 ### 2. OIDC identity verification
 
-The identity-check workflow verifies that GitHub Actions can authenticate to AWS using the configured OIDC trust relationship and assume the expected IAM role.
+The identity-check workflow tests the GitHub-to-AWS authentication configuration. The resulting AWS identity should match the expected account and IAM role.
 
-The AWS identity output provides evidence of the identity used by the workflow. It should be checked against the intended AWS account and role.
+**Evidence**
 
-**Evidence:** `docs/images/oidc-identity-check.png`
+![OIDC Identity Check](docs/images/oidc-identity-check.png)
 
-### 3. Terraform validation
+*Evidence of the workflow's AWS identity verification.*
 
-After the VPC and Application Load Balancer configuration was committed, the validation workflow checked whether the Terraform configuration was syntactically and structurally valid.
+### 3. Secure S3 remote state
 
-Validation is an important quality gate, but it does not prove that AWS will successfully create every resource or that the resulting infrastructure is secure.
+The S3 state bucket keeps Terraform state outside the GitHub Actions runner. Versioning helps preserve state history, while Block Public Access reduces the risk of unintended public exposure.
 
-**Evidence:** `docs/images/terraform-validation.png`
+**Evidence**
 
-### 4. Terraform plan
+![S3 Bucket Security](docs/images/s3-bucket-security.png)
 
-The plan workflow initialises Terraform, validates the configuration, and generates a proposed set of infrastructure changes. The plan can be inspected before deciding whether to deploy.
+*Amazon S3 bucket configuration showing versioning and Block Public Access settings.*
 
-The plan is a preview, not an infrastructure deployment. In this project's workflow, the generated plan file is runner-local unless explicitly published as an artifact.
+### 4. Terraform validation
 
-**Evidence:** `docs/images/terraform-plan.png`
+After the VPC and ALB configuration was committed, the validation workflow checked the Terraform configuration for errors.
 
-### 5. Terraform plan and apply
+Validation is an important quality gate, although it does not guarantee that AWS will successfully create every resource.
 
-The deployment workflow generates a Terraform plan and applies it to create or update the resources represented in the configuration and state.
+**Evidence**
 
-The resulting AWS resources can then be checked in the AWS console. Any production approval depends on the GitHub environment protection rules actually configured for the repository.
+![Terraform Validation](docs/images/terraform-validation.png)
 
-**Evidence:** `docs/images/terraform-plan-and-apply.png`
+*Terraform validation following the infrastructure configuration changes.*
 
-### 6. Infrastructure drift detection
+### 5. Terraform plan
 
-Drift detection compares the configuration and Terraform state with the infrastructure currently observed in AWS. It runs a Terraform plan and interprets the result to distinguish between no changes, detected changes, and an execution error.
+The plan workflow previews the infrastructure changes Terraform proposes to make.
 
-The scheduled workflow is configured to run daily at 08:17 UTC, in addition to supporting manual execution.
+Reviewing the plan helps identify unexpected resource creation, modification, or deletion before deployment.
 
-A plan that identifies drift is a signal to investigate. It does not automatically remediate the change or apply infrastructure modifications.
+**Evidence**
 
-**Evidence:** `docs/images/drift-detection.png`
+![Terraform Plan](docs/images/terraform-plan.png)
 
-### 7. Controlled teardown
+*Terraform's proposed infrastructure changes before deployment.*
 
-The teardown workflow generates and displays a destroy plan before applying it. Once the destructive apply step is enabled and executed, Terraform attempts to remove the resources managed by the selected state.
+### 6. Terraform plan and apply
 
-This is a real infrastructure deletion operation, not simply a validation or dry run. The Terraform state backend must remain available during teardown.
+The deployment workflow generates a Terraform plan and applies the proposed changes according to the workflow configuration.
 
-After the run, the AWS console and Terraform state should be checked to verify the outcome. A successful workflow is useful evidence, but remaining resources and failed deletions should still be investigated.
+The resulting infrastructure should be verified in AWS rather than relying on the workflow status alone.
 
-**Evidence:** `docs/images/terraform-destroy.png`
+**Evidence**
 
-## 🧪 Drift experiment
+![Terraform Plan and Apply](docs/images/terraform-plan-and-apply.png)
 
-One of the key experiments in Operation GoldenEye was to introduce a manual change to a resource managed by Terraform and observe whether the drift-detection workflow identified it.
+*Evidence from the Terraform plan-and-apply workflow.*
+
+### 7. Infrastructure drift detection
+
+Infrastructure drift occurs when the real infrastructure differs from the configuration Terraform expects.
+
+The drift workflow runs a Terraform plan to identify differences between the declared configuration, Terraform state, and infrastructure observed in AWS.
+
+The workflow supports manual execution and is configured to run daily at **08:17 UTC**.
+
+A detected difference should be investigated before remediation. Drift detection does not automatically determine whether a manual change was legitimate.
+
+**Evidence**
+
+![Infrastructure Drift Detection](docs/images/drift-detection.png)
+
+*GitHub Actions evidence from the infrastructure drift-detection workflow.*
+
+### 8. Running a deployment
+
+This stage documents the deployment run and provides evidence of the infrastructure lifecycle in action.
+
+The plan, workflow result, and AWS resources should be checked together to establish what was actually deployed.
+
+**Evidence**
+
+![Deployment Run](docs/images/deployment-run.png)
+
+*Evidence from the infrastructure deployment workflow.*
+
+## 🧪 Controlled drift experiment
+
+The drift experiment tests whether Terraform can identify a manual change made outside the normal infrastructure-as-code workflow.
 
 ### Experiment procedure
 
-1. Establish a clean Terraform plan as the baseline.
-2. Change a tag on the existing Application Load Balancer directly in AWS.
+1. Establish a baseline by running Terraform plan with no unexpected changes.
+2. Change the ALB's `Owner` tag manually in AWS.
 3. Run the drift-detection workflow.
-4. Inspect the plan and the workflow's reported exit code.
-5. Confirm that Terraform identifies the difference between the declared configuration and the observed infrastructure.
-6. Restore the intended configuration through Terraform.
-7. Run drift detection again to confirm that no further changes are reported.
+4. Inspect the Terraform plan and its exit status.
+5. Confirm whether Terraform proposes restoring the intended configuration.
+6. Restore the expected configuration through an approved Terraform workflow.
+7. Run drift detection again to check whether the plan is clean.
 
-### Observed change
+### Expected configuration difference
 
-During the experiment, the ALB's expected `Owner` tag was changed manually to `ManualChangeTest`, with the value `GoldenEye`.
+The intended tag is:
 
-Terraform subsequently identified a change that would restore the expected `Owner = GoldenEye` tag and remove the manually introduced tag.
+```hcl
+Owner = "GoldenEye"
+```
 
-The plan reported:
+The experiment changes the tag to:
 
-`Plan: 0 to add, 1 to change, 0 to destroy`
+```hcl
+Owner = "ManualChangeTest"
+```
 
-Terraform's detailed exit-code behaviour is important to this experiment:
+Terraform should identify the difference and, if the resource and tag remain managed as expected, propose restoring `Owner = "GoldenEye"`.
+
+A plan showing the following would indicate one resource modification and no additions or deletions:
+
+```text
+Plan: 0 to add, 1 to change, 0 to destroy.
+```
+
+### Interpreting Terraform's detailed exit codes
+
+When Terraform plan runs with `-detailed-exitcode`, its result can be interpreted as follows:
 
 | Exit code | Meaning |
 |---|---|
-| `0` | The plan completed successfully with no changes. |
+| `0` | The plan succeeded and found no changes. |
 | `1` | Terraform encountered an error. |
-| `2` | The plan completed successfully and changes were detected. |
+| `2` | The plan succeeded and identified changes. |
 
-The workflow was adjusted to handle these outcomes correctly, including disabling the Terraform setup action's output wrapper so the script could reliably capture Terraform's exit code.
-
-This experiment demonstrates why automated drift detection must interpret both the plan and its exit status rather than relying only on a successful workflow step.
+The workflow must handle these outcomes explicitly. A detected change is not the same as an execution failure, and a successful workflow step does not necessarily mean the infrastructure is drift-free.
 
 ### Experiment evidence
 
-Save the actual screenshots from your run using these filenames:
+![Drift Experiment](docs/images/drift-experiment.png)
 
-- `docs/images/drift-baseline.png`
-- `docs/images/drift-manual-change.png`
-- `docs/images/drift-detected-change.png`
-- `docs/images/drift-remediated.png`
+*Evidence from the intentional manual-change experiment and the resulting drift-detection run.*
+
+**Result:** Record the actual outcome shown by your workflow. A strong result demonstrates the baseline, the detected difference, and the clean plan after remediation.
+
+## 🧹 Terraform destroy and cleanup
+
+Teardown is an important part of the infrastructure lifecycle. Temporary cloud resources should not be left running simply because the deployment experiment has finished.
+
+The teardown workflow generates and reviews a Terraform destroy plan before carrying out the configured deletion operation.
+
+After teardown:
+
+- Review the final workflow result.
+- Check AWS for resources that may remain.
+- Investigate failed deletions or resources outside the selected Terraform state.
+- Keep the S3 state backend available until it is safe to retire it separately.
+- Review AWS billing for any remaining or accumulated charges.
+
+A successful destroy workflow does not, by itself, prove that every resource in the AWS account has been removed.
+
+**Evidence**
+
+![Terraform Destroy](docs/images/terraform-destroy.png)
+
+*Terraform teardown workflow evidence. Confirm the final deletion result and AWS cleanup separately.*
 
 ## 💷 Cost management
 
-GoldenEye is designed as a focused demonstration, not as a claim that every deployment is free.
+Operation GoldenEye is a focused demonstration, but a deployment is **not automatically free**.
 
-AWS charges can depend on the region, resource configuration, duration, traffic, and applicable account credits or free-tier eligibility. In particular, a public Application Load Balancer can incur charges while it exists, even when it returns only a fixed response and receives little traffic.
+A public Application Load Balancer can incur charges while it exists, even if it returns only a fixed response. Other resources and S3 storage or requests may also incur charges depending on usage and account eligibility.
 
-Cost-control practices for this project include:
+Cost-control measures include:
 
-- Deploy only the infrastructure required for the experiment.
-- Check the AWS billing console and any applicable budgets or alerts.
-- Review the Terraform plan before creating additional resources.
-- Destroy the demonstration infrastructure when it is no longer needed.
-- Verify that resources have actually been removed after teardown.
-- Retain the Terraform state backend until it is safe to retire it separately.
+- Reviewing the proposed Terraform plan before deployment.
+- Checking the AWS billing console and any available budget alerts.
+- Keeping live infrastructure only for as long as required.
+- Running the approved teardown workflow when the experiment is complete.
+- Verifying that resources have actually been removed.
+- Retaining the Terraform state backend until it is safe to remove.
 
-**Cost status:** Actual project cost should be confirmed using AWS billing data. No zero-cost claim is made here without supporting evidence.
+**Cost status:** Confirm actual costs using AWS billing data. Do not describe the project as zero-cost unless the account's actual usage and billing evidence support that claim.
 
-## 🛠️ Failure handling and operational considerations
+## 🛠️ Failure handling
 
-| Scenario | Expected response |
+| Scenario | Operational response |
 |---|---|
 | Terraform validation fails | Review the configuration error and correct it before deployment. |
-| OIDC authentication is rejected | Check the IAM trust policy, repository/environment subject, token audience, and workflow permissions. |
-| Terraform plan proposes unexpected changes | Stop before applying, inspect the proposed changes, and investigate state or configuration differences. |
-| Drift is detected | Review the plan and determine whether the change was intentional before remediating it. |
-| Drift detection returns an error | Investigate authentication, state access, permissions, provider errors, and workflow logs. |
-| Terraform apply fails | Inspect the failed resource and AWS error, then determine whether a partial deployment occurred. |
-| Terraform destroy fails | Identify resources that remain, resolve dependency or permission problems, and generate a fresh destroy plan before retrying. |
-| Resources remain after teardown | Check the relevant AWS services and Terraform state rather than assuming the workflow's final message proves complete removal. |
+| OIDC authentication fails | Check workflow permissions, token audience, IAM trust conditions, and repository/environment identity. |
+| Terraform plan proposes unexpected changes | Stop before applying and investigate the configuration, state, and proposed actions. |
+| Drift is detected | Determine whether the manual change was intentional and remediate through an approved process. |
+| Drift detection encounters an error | Investigate credentials, permissions, state access, locking, and workflow logs. |
+| Terraform apply fails | Inspect the AWS error and determine whether some resources were created or modified before failure. |
+| Terraform destroy fails | Identify remaining resources, investigate permissions or dependencies, and generate a fresh plan before retrying. |
 
 ## 🚀 How to reproduce
-
-This project is designed around the repository and GitHub Actions workflows.
 
 ### Prerequisites
 
 - A GitHub repository containing the Terraform configuration and workflow files.
-- An AWS account and a selected deployment region.
+- An AWS account and selected region.
 - An AWS IAM OIDC provider configured for GitHub Actions.
-- IAM roles with suitable trust policies and permissions for identity checks, deployment, state access, drift detection, and teardown.
-- An S3 Terraform backend with the expected bucket, key, region, and state-lock configuration.
-- GitHub environment variables configured with the correct role ARNs.
-- Any required GitHub environment protection rules configured and tested.
+- IAM roles with suitable trust policies and permissions.
+- An S3 Terraform backend configured for the expected bucket, key, region, and state-lock mechanism.
+- GitHub environment variables containing the correct IAM role ARNs.
+- Appropriate GitHub environment protection rules, if approval gates are required.
 
 ### Workflow sequence
 
-1. Review the Terraform configuration and repository structure.
-2. Run the Terraform quality-check workflow.
+1. Review the repository structure and Terraform configuration.
+2. Run Terraform quality checks.
 3. Run the OIDC identity-check workflow.
-4. Commit the networking and load-balancer configuration.
-5. Run Terraform validation.
-6. Run the Terraform plan workflow and inspect the proposed changes.
-7. Run the deployment workflow when ready to create or update the infrastructure.
-8. Verify the deployed resources in the AWS console.
-9. Run drift detection and perform the controlled manual-tag experiment.
-10. Restore the expected configuration and verify a clean plan.
-11. Run the controlled teardown workflow when the infrastructure is no longer required.
-12. Verify resource removal and review AWS billing afterwards.
+4. Verify the S3 bucket's versioning and Block Public Access settings.
+5. Commit the VPC and ALB configuration.
+6. Run Terraform validation.
+7. Generate and review a Terraform plan.
+8. Execute the approved deployment workflow.
+9. Verify the resulting AWS resources.
+10. Run drift detection and perform the controlled manual-tag experiment.
+11. Restore the expected configuration and confirm the resulting plan.
+12. Execute teardown when the infrastructure is no longer required.
+13. Verify cleanup and review billing.
 
-The exact resources created or removed depend on the Terraform configuration and the state selected by the workflow. Confirm the AWS account, region, backend, and plan before executing deployment or teardown.
+Always verify the AWS account, region, Terraform backend, and proposed changes before running deployment or destructive operations.
 
 ## ⚠️ Scope and limitations
 
-- The load balancer uses an HTTP fixed response to demonstrate networking and traffic entry; it is not a full application deployment.
-- HTTPS, custom domains, an application fleet, and production application health checks are outside the scope of this initial implementation.
-- A successful Terraform validation does not guarantee a successful AWS deployment.
-- A Terraform plan can detect differences but does not automatically decide whether a manual change is legitimate.
-- OIDC security depends on the correctness of IAM trust policies and effective permissions.
-- A separate IAM role does not guarantee least privilege unless its policies enforce it.
-- A destroy workflow only removes resources managed by the selected Terraform state and permitted by AWS; it is not a general AWS-account cleanup mechanism.
-- Actual costs and cleanup results must be verified against the AWS account rather than inferred from workflow success alone.
+- The ALB returns a fixed HTTP response rather than serving a full application.
+- HTTPS, a custom domain, and an application server fleet are outside the scope of this implementation.
+- Terraform validation does not guarantee successful deployment or secure runtime configuration.
+- Drift detection identifies differences; it does not independently decide whether a change is authorised.
+- IAM role separation supports least privilege only when the attached policies enforce suitable restrictions.
+- Terraform destroy operates on resources managed by the selected state and permitted by AWS; it is not a general account-cleanup mechanism.
+- Actual costs, deployment outcomes, and cleanup results must be verified against the AWS account.
 
 ## 📚 Key lessons
 
 Operation GoldenEye explores several practical DevOps principles:
 
-- **Identity before automation:** CI/CD workflows need a tightly controlled identity before they can safely interact with cloud resources.
-- **Infrastructure as Code:** Declarative configuration makes intended infrastructure changes reviewable and repeatable.
-- **State matters:** Remote Terraform state is central to tracking and managing infrastructure.
-- **Plans are decision points:** Reviewing proposed changes can prevent accidental modifications and destructive operations.
-- **Drift needs detection and interpretation:** Manual changes can create configuration differences, and automation must report them accurately.
-- **Least privilege is operational:** IAM permissions should match the specific needs of each workflow.
-- **Teardown is part of the lifecycle:** Deleting temporary infrastructure and verifying cleanup are as important as creating it.
-- **Evidence improves trust:** Screenshots of real workflow runs and AWS configuration help demonstrate what was actually tested.
-
-## 📸 Evidence gallery
-
-The screenshots below document the implementation from initial security configuration through deployment, drift detection, and cleanup.
-
-### Quality and identity
-
-![Terraform quality checks](docs/images/terraform-quality-checks.png)
-
-*Terraform quality checks.*
-
-![OIDC identity verification](docs/images/oidc-identity-check.png)
-
-*GitHub Actions identity verification against AWS.*
-
-### State security
-
-![S3 bucket configuration](docs/images/s3-bucket-security.png)
-
-*S3 Terraform state bucket, versioning, and Block Public Access settings.*
-
-### Validation and deployment
-
-![Terraform validation](docs/images/terraform-validation.png)
-
-*Successful Terraform validation after committing the infrastructure configuration.*
-
-![Terraform plan](docs/images/terraform-plan.png)
-
-*Terraform's proposed infrastructure changes.*
-
-![Terraform plan and apply](docs/images/terraform-plan-and-apply.png)
-
-*Terraform deployment workflow.*
-
-### Drift detection
-
-![Infrastructure drift detection](docs/images/drift-detection.png)
-
-*Automated drift-detection result.*
-
-![Manual drift experiment](docs/images/drift-manual-change.png)
-
-*The intentional manual change used in the drift experiment.*
-
-![Detected drift](docs/images/drift-detected-change.png)
-
-*Terraform's plan identifying the configuration difference.*
-
-![Remediated drift](docs/images/drift-remediated.png)
-
-*Evidence of the restored configuration and clean plan.*
-
-### Deployment and teardown
-
-![Running a deployment](docs/images/deployment-run.png)
-
-*Deployment workflow evidence.*
-
-![Terraform destroy](docs/images/terraform-destroy.png)
-
-*Destroy plan and teardown workflow result.*
-
-> **Screenshot note:** Keep the screenshots in `docs/images/` using the filenames shown above, or update the Markdown image paths to match your actual filenames. Only describe a run as successful when the screenshot shows that result.
-
-## 🗂️ Repository structure
-
-```text
-operation-goldeneye/
-├── .github/
-│   └── workflows/
-│       ├── terraform-plan.yml
-│       ├── terraform-apply.yml
-│       ├── drift-detection.yml
-│       └── ...
-├── docs/
-│   └── images/
-│       ├── architecture.png
-│       ├── terraform-quality-checks.png
-│       ├── oidc-identity-check.png
-│       ├── s3-bucket-security.png
-│       ├── terraform-validation.png
-│       ├── terraform-plan.png
-│       ├── terraform-plan-and-apply.png
-│       ├── drift-detection.png
-│       ├── drift-baseline.png
-│       ├── drift-manual-change.png
-│       ├── drift-detected-change.png
-│       ├── drift-remediated.png
-│       ├── deployment-run.png
-│       └── terraform-destroy.png
-├── infra/
-│   ├── main.tf
-│   ├── outputs.tf
-│   ├── variables.tf
-│   └── ...
-└── README.md
-```
-
-*Illustrative structure: retain the filenames and paths that actually exist in the repository, and update this tree to reflect the final committed files.*
+- **Identity before automation:** CI/CD requires a trusted, appropriately restricted identity.
+- **Infrastructure as Code:** Declarative configuration makes infrastructure changes repeatable and reviewable.
+- **State matters:** Remote state is central to tracking and managing Terraform resources.
+- **Plans are decision points:** Reviewing proposed changes reduces the risk of accidental modifications.
+- **Drift requires investigation:** Unexpected changes need to be detected, understood, and remediated.
+- **Least privilege is operational:** Permissions should reflect what each workflow actually needs to do.
+- **Cleanup is part of delivery:** Teardown and verification are as important as deployment.
+- **Evidence builds confidence:** Workflow logs and AWS configuration screenshots make the implementation easier to assess.
 
 ## 🎯 Final mission status
 
-Operation GoldenEye demonstrates an infrastructure lifecycle built around Terraform, GitHub Actions, AWS OIDC, remote state, network configuration, drift detection, and controlled teardown.
+Operation GoldenEye brings together Terraform, GitHub Actions, AWS OIDC, remote state, networking, infrastructure deployment, drift detection, and controlled teardown.
 
-The aim is not simply to deploy cloud resources, but to make the process **repeatable, observable, security-conscious, and reversible**.
+The objective is not simply to make infrastructure work. It is to make the lifecycle **repeatable, observable, security-conscious, and reversible**.
 
-*Mission objective: automate responsibly, detect unexpected changes, and leave no unnecessary infrastructure running.*
+*Mission objective: automate responsibly, investigate unexpected changes, and leave no unnecessary infrastructure running.*
