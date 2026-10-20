@@ -226,7 +226,13 @@ A detected difference should be investigated before remediation. Drift detection
 
 **Evidence**
 
-![Infrastructure Drift Detection](docs/images/drift-detection.png)
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/d5c2b14170f4a27251a4198865e00ce37667fe4e/screenshots/Screenshot%202026-10-20%20at%2014.39.05.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/d5c2b14170f4a27251a4198865e00ce37667fe4e/screenshots/Screenshot%202026-10-20%20at%2014.39.13.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/d5c2b14170f4a27251a4198865e00ce37667fe4e/screenshots/Screenshot%202026-10-20%20at%2014.39.22.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/d5c2b14170f4a27251a4198865e00ce37667fe4e/screenshots/Screenshot%202026-10-20%20at%2014.39.28.png)
 
 *GitHub Actions evidence from the infrastructure drift-detection workflow.*
 
