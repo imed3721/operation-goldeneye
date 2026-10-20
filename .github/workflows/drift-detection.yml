@@ -42,7 +42,6 @@ jobs:
 
       - name: Check for infrastructure drift
         id: drift
-        continue-on-error: true
         run: |
           set +e
           terraform plan -detailed-exitcode -no-color -out=drift.tfplan
