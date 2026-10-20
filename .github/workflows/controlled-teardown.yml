@@ -1,0 +1,59 @@
+name: GoldenEye - Controlled Teardown
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  destroy:
+    name: Review Infrastructure Teardown Plan
+    runs-on: ubuntu-latest
+    environment: production
+
+    defaults:
+      run:
+        working-directory: infra
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.14.0"
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Initialise Terraform
+        run: terraform init -input=false
+
+      - name: Validate Terraform configuration
+        run: terraform validate
+
+      - name: Generate destroy plan
+        run: terraform plan -destroy -input=false -no-color -out=goldeneye-destroy.tfplan
+
+      - name: Display destroy plan
+        run: terraform show -no-color goldeneye-destroy.tfplan
+
+      - name: Confirm teardown was not executed
+        run: |
+          echo "========================================"
+          echo "GoldenEye Controlled Teardown"
+          echo "========================================"
+          echo "Destroy plan generated successfully."
+          echo "No infrastructure resources have been destroyed."
+          echo "Review the plan before authorising any deletion."
+          echo "========================================"
