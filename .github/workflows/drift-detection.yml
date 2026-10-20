@@ -3,6 +3,7 @@ name: GoldenEye - Drift Detection
 on:
   workflow_dispatch:
   schedule:
+    # Run daily at 08:17 UTC.
     - cron: "17 8 * * *"
 
 permissions:
@@ -38,35 +39,62 @@ jobs:
         run: aws sts get-caller-identity
 
       - name: Initialise Terraform
-        run: terraform init
+        run: terraform init -input=false
 
       - name: Check for infrastructure drift
         id: drift
+        shell: bash
         run: |
           set +e
-          terraform plan -detailed-exitcode -no-color -out=drift.tfplan
+          terraform plan \
+            -input=false \
+            -detailed-exitcode \
+            -no-color \
+            -out=drift.tfplan
           exit_code=$?
+          set -e
+
           echo "exitcode=$exit_code" >> "$GITHUB_OUTPUT"
 
-          if [ "$exit_code" -eq 1 ]; then
-            exit 1
-          fi
-
-          exit 0
+          case "$exit_code" in
+            0)
+              echo "Drift status: No changes detected."
+              ;;
+            1)
+              echo "Error: Terraform plan failed."
+              exit 1
+              ;;
+            2)
+              echo "Drift status: Changes detected."
+              ;;
+            *)
+              echo "Error: Unexpected Terraform exit code: $exit_code"
+              exit 1
+              ;;
+          esac
 
       - name: Report drift result
         if: always()
+        shell: bash
         env:
           PLAN_OUTCOME: ${{ steps.drift.outcome }}
           PLAN_EXIT_CODE: ${{ steps.drift.outputs.exitcode }}
         run: |
-          echo "Drift detection step outcome: $PLAN_OUTCOME"
-          echo "Terraform plan exit code: $PLAN_EXIT_CODE"
+          echo "========================================"
+          echo "GoldenEye Infrastructure Drift Report"
+          echo "========================================"
+          echo "Detection step outcome: ${PLAN_OUTCOME:-not completed}"
+          echo "Terraform plan exit code: ${PLAN_EXIT_CODE:-unavailable}"
 
           if [ "$PLAN_EXIT_CODE" = "0" ]; then
             echo "Result: No changes detected."
+            echo "Action: No remediation required."
           elif [ "$PLAN_EXIT_CODE" = "2" ]; then
-            echo "Result: Changes detected. Review the Terraform plan output above."
+            echo "Result: Infrastructure changes detected."
+            echo "Action: Review the Terraform plan before making changes."
           else
-            echo "Result: Drift detection failed or did not complete. Review the workflow logs."
+            echo "Result: Drift detection failed or did not complete."
+            echo "Action: Review the workflow logs and investigate the error."
           fi
+
+          echo "========================================"
