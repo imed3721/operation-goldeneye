@@ -206,7 +206,11 @@ The resulting infrastructure should be verified in AWS rather than relying on th
 
 **Evidence**
 
-![Terraform Plan and Apply](docs/images/terraform-plan-and-apply.png)
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/f040428a0055e7c93b5f6729a9fcfc370c556d78/screenshots/Screenshot%202026-10-20%20at%2014.14.50.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/f040428a0055e7c93b5f6729a9fcfc370c556d78/screenshots/Screenshot%202026-10-20%20at%2014.15.09.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/f040428a0055e7c93b5f6729a9fcfc370c556d78/screenshots/Screenshot%202026-10-20%20at%2014.15.16.png)
 
 *Evidence from the Terraform plan-and-apply workflow.*
 
