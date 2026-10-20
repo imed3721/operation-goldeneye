@@ -178,7 +178,7 @@ Validation is an important quality gate, although it does not guarantee that AWS
 
 **Evidence**
 
-![Terraform Validation](docs/images/terraform-validation.png)
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/88fd65989ce9450e6b5ffa6f5b8df77cd1107803/screenshots/Screenshot%202026-10-20%20at%2013.56.54.png)
 
 *Terraform validation following the infrastructure configuration changes.*
 
@@ -190,7 +190,11 @@ Reviewing the plan helps identify unexpected resource creation, modification, or
 
 **Evidence**
 
-![Terraform Plan](docs/images/terraform-plan.png)
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/88fd65989ce9450e6b5ffa6f5b8df77cd1107803/screenshots/Screenshot%202026-10-20%20at%2014.07.47.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/88fd65989ce9450e6b5ffa6f5b8df77cd1107803/screenshots/Screenshot%202026-10-20%20at%2014.08.15.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/88fd65989ce9450e6b5ffa6f5b8df77cd1107803/screenshots/Screenshot%202026-10-20%20at%2014.08.21.png)
 
 *Terraform's proposed infrastructure changes before deployment.*
 
