@@ -306,7 +306,19 @@ The workflow must handle these outcomes explicitly. A detected change is not the
 
 ### Experiment evidence
 
-![Drift Experiment](docs/images/drift-experiment.png)
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/e7ab12e1af91f3ee403037f449f58685faaf14f3/screenshots/Screenshot%202026-10-20%20at%2015.53.13.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/e7ab12e1af91f3ee403037f449f58685faaf14f3/screenshots/Screenshot%202026-10-20%20at%2015.53.31.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/e7ab12e1af91f3ee403037f449f58685faaf14f3/screenshots/Screenshot%202026-10-20%20at%2015.55.45.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/e7ab12e1af91f3ee403037f449f58685faaf14f3/screenshots/Screenshot%202026-10-20%20at%2015.55.53.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/e7ab12e1af91f3ee403037f449f58685faaf14f3/screenshots/Screenshot%202026-10-20%20at%2016.08.16.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/e7ab12e1af91f3ee403037f449f58685faaf14f3/screenshots/Screenshot%202026-10-20%20at%2016.10.36.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/e7ab12e1af91f3ee403037f449f58685faaf14f3/screenshots/Screenshot%202026-10-20%20at%2016.10.41.png)
 
 *Evidence from the intentional manual-change experiment and the resulting drift-detection run.*
 
@@ -330,7 +342,33 @@ A successful destroy workflow does not, by itself, prove that every resource in 
 
 **Evidence**
 
-![Terraform Destroy](docs/images/terraform-destroy.png)
+![Image Alt]()
+
+![Image Alt]()
+
+![Image Alt]()
+
+![Image Alt]()
+
+![Image Alt]()
+
+![Image Alt]()
+
+![Image Alt]()
+
+![Image Alt]()
+
+![Image Alt]()
+
+![Image Alt]()
+
+![Image Alt]()
+
+![Image Alt]()
+
+![Image Alt]()
+
+![Image Alt]()
 
 *Terraform teardown workflow evidence. Confirm the final deletion result and AWS cleanup separately.*
 
