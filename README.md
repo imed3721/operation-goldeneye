@@ -138,7 +138,11 @@ Automated checks help identify formatting, configuration, and validation issues 
 
 **Evidence**
 
-![Terraform Quality Checks](docs/images/terraform-quality-checks.png)
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/4580887e21fa1ad2e8ac16fc7130d4f5e84a9c42/screenshots/Screenshot%202026-10-20%20at%2012.54.08.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/4580887e21fa1ad2e8ac16fc7130d4f5e84a9c42/screenshots/Screenshot%202026-10-20%20at%2012.54.19.png)
+
+![Image Alt](https://github.com/imed3721/operation-goldeneye/blob/4580887e21fa1ad2e8ac16fc7130d4f5e84a9c42/screenshots/Screenshot%202026-10-20%20at%2012.54.26.png)
 
 *GitHub Actions running the Terraform quality-check workflow.*
 
