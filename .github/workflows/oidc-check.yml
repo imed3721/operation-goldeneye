@@ -1,0 +1,24 @@
+name: GoldenEye - OIDC Identity Check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  verify:
+    name: Verify AWS OIDC Authentication
+    runs-on: ubuntu-latest
+    environment: oidc-test
+
+    steps:
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_OIDC_TEST_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Verify Assumed AWS Identity
+        run: aws sts get-caller-identity
